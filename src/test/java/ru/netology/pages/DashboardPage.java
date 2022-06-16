@@ -1,29 +1,37 @@
 package ru.netology.pages;
 
-import com.codeborne.selenide.SelenideElement;
-
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
+import lombok.val;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$x;
+import static com.codeborne.selenide.Selenide.$$;
+import com.codeborne.selenide.ElementsCollection;
 
 public class DashboardPage {
-    private SelenideElement heading = $("[data-test-id=dashboard]");
 
+    private ElementsCollection cards = $$(".list__item div");
+    private final String balanceStart = "баланс: ";
+    private final String balanceFinish = " р.";
 
-    public DashboardPage() {
-        heading.shouldBe(visible);
+    public DashboardPage() {};
+
+    public int getFirstCardBalance() {
+        val text = cards.first().text();
+        return extractBalance(text);
     }
 
-    public void ReplanishFirstCard(String summ){
-        var temp = $x("//*[contains (text(), '0001')]/text()[3]").getOwnText();
-        $("[data-test-id='action-deposit']").click();
-        $x("//h1[contains(text() , 'Пополнение карты')]").shouldBe(visible);
-        $("[data-test-id='amount']  .input__control").setValue(summ);
-        $("[data-test-id='from']  .input__control").setValue("5559000000000002");
-        $("[data-test-id='action-transfer'] .button__content").click();
-        var tempTwo = Integer.parseInt (temp) + Integer.parseInt (summ);
-        $x("//*[contains (text(), '0001')]/text()[3]").shouldHave(text(Integer.toString(tempTwo)));
+    public int getSecondCardBalance() {
+        val text = cards.last().text();
+        return extractBalance(text);
+    }
 
+    private int extractBalance(String text) {
+        val start = text.indexOf(balanceStart);
+        val finish = text.indexOf(balanceFinish);
+        val value = text.substring(start + balanceStart.length(), finish);
+        return Integer.parseInt(value);
+    }
+
+    public TransferPage firstCardDeposit () {
+        $(".button__text").click();
+        return new TransferPage();
     }
 }
